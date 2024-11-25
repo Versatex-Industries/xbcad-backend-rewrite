@@ -30,11 +30,6 @@ const simulateBusMovement = async () => {
             route.liveLocation.coordinates = simulatedPoints[currentIndex];
             await route.save();
 
-            console.log(
-                `Bus on ${route.routeName} updated:`,
-                route.liveLocation.coordinates
-            );
-
             currentIndex++;
         }, 10000); // Update every 5 seconds
     }

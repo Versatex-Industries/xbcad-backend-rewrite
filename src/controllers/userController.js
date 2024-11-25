@@ -51,13 +51,29 @@ module.exports = {
                 return res.status(400).json({ error: 'Parents cannot have a grade field in their profile' });
             }
 
+            // Handle linkedChildren conversion
+            if (updates.profile?.linkedChildren) {
+                if (typeof updates.profile.linkedChildren === 'string') {
+                    // Convert comma-separated string into an array
+                    updates.profile.linkedChildren = updates.profile.linkedChildren.split(',').map((id) => id.trim());
+                }
+
+                // Ensure all linkedChildren are valid ObjectIds
+                updates.profile.linkedChildren = updates.profile.linkedChildren.map((id) => {
+                    if (!mongoose.Types.ObjectId.isValid(id)) {
+                        throw new Error(`Invalid child ID: ${id}`);
+                    }
+                    return new mongoose.Types.ObjectId(id);
+                });
+            }
+
             // Update the user's profile
             const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true }).select('-password');
             if (!user) return res.status(404).json({ error: 'User not found' });
 
             res.status(200).json({ message: 'Profile updated successfully', user });
         } catch (err) {
-            console.error(err);
+            console.error('Error updating profile:', err);
             res.status(500).json({ error: 'Server error', details: err.message });
         }
     },

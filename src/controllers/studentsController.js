@@ -36,6 +36,24 @@ module.exports = {
         }
     },
 
+    async getStudentGrades(req, res) {
+        try {
+            const { studentId } = req.params; // Get studentId from the request parameters
+
+            // Validate access for parent or student
+            const filter =
+                req.user.role === 'Parent'
+                    ? { studentId, studentId: { $in: req.user.profile.linkedChildren.map(child => child._id) } }
+                    : { studentId: req.user.id };
+
+            // Query the attendance
+            const grades = await Grade.find(filter);
+            res.status(200).json(grades);
+        } catch (err) {
+            res.status(500).json({ error: 'Server error', details: err.message });
+        }
+    },
+
 
     // Get specific student profile
     async getStudentProfile(req, res) {
@@ -46,7 +64,8 @@ module.exports = {
             if (!student) {
                 return res.status(404).json({ error: 'Student not found' });
             }
-
+            console.log(student);
+            console.log(student)
             res.status(200).json(student);
         } catch (err) {
             console.error('Error fetching student profile:', err);
